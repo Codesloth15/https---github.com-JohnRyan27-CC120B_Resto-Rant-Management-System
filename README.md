@@ -2,6 +2,12 @@
 
 This documentation outlines the structure of the database including SQL `CREATE TABLE` statements for each table used in the system.
 
+
+database resto_rant_managemrnt_system;
+
+```sql
+CREATE DATABASE resto_rant_management_system;
+```
 ---
 
 ## 🏨 Table: `rooms`
