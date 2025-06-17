@@ -54,8 +54,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $insert_sql = "INSERT INTO users (name, email, phone, address, username, password)
-                           VALUES ('$name', '$email', '$phone', '$address', '$username', '$hashed_password')";
+            $insert_sql = "INSERT INTO users (name, email, phone, address, username, password,role)
+                           VALUES ('$name', '$email', '$phone', '$address', '$username', '$hashed_password','user')";
 
             if ($conn->query($insert_sql) === TRUE) {
                 $success_message = "Account created successfully. You can now log in.";
@@ -79,12 +79,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body style="background: url('../img/') no-repeat center center fixed; background-size: cover;">
+<body style="background: url('../img/l.jpg') no-repeat center center fixed; background-size: cover;">
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="#">Rage Room & Resto</a>
+        <a class="navbar-brand" href="../client/LandingPage.php">Rage Room & Resto</a>
     </div>
 </nav>
 
@@ -135,18 +135,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </form>
 
                     <div class="text-center mt-3">
-                        <small>Already have an account? <a href="login.php">Log in</a></small>
+                        <small>Already have an account? <a href="../client/loginPage.php">Log in</a></small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Footer -->
-<footer class="bg-dark text-white text-center py-3 mt-5">
-    <p>&copy; <?= date("Y") ?> Rage Room & Resto. All rights reserved.</p>
-</footer>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
