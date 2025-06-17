@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $username;
-                header("Location: dashboard.php"); // Replace with your actual dashboard
+                header("Location: ../client/LandingPage.php"); // Replace with your actual dashboard
                 exit;
             } else {
                 $error_message = "Incorrect password.";
