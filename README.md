@@ -138,3 +138,19 @@ Stores user account data.
 - Add `FOREIGN KEY` constraints between users and other related data.
 - Include `updated_at` and `deleted_at` fields for better record management.
 - Normalize repeated information across tables where applicable.
+
+
+
+
+for adding history 
+CREATE TABLE history_transactions (
+  transaction_id INT PRIMARY KEY,
+  username VARCHAR(100),
+  room_id INT,
+  room_name VARCHAR(255),
+  price DECIMAL(10,2),
+  date_to_avail DATE,
+  created_at DATETIME,
+  status VARCHAR(50),
+  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
