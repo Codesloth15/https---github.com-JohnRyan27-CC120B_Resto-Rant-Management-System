@@ -19,7 +19,7 @@ USE resto_rant_management_system;
 Stores information about rooms available for booking or rage room use.
 
 ```sql
-CREATE TABLE rooms (
+CREATE TABLE rage_rooms (
     id INT(11) NOT NULL AUTO_INCREMENT,
     name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
@@ -40,7 +40,7 @@ CREATE TABLE rooms (
 Stores all menu items available to order.
 
 ```sql
-CREATE TABLE items (
+CREATE TABLE resto_menu (
     id INT(11) NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
