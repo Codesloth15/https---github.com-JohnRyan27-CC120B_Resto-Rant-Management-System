@@ -1,18 +1,22 @@
-# 📦 Database Schema Documentation
 
-This documentation outlines the structure of the database including SQL `CREATE TABLE` statements for each table used in the system.
+# 🍽️ Resto Rant Management System
 
+This project is a **Restaurant and Rage Room Management System**, supporting room bookings, food orders, and user transactions. Below is a full reference of the SQL database schema used in this project.
 
-database resto_rant_managemrnt_system;
+---
+
+## 📦 Database Initialization
 
 ```sql
 CREATE DATABASE resto_rant_management_system;
+USE resto_rant_management_system;
 ```
+
 ---
 
 ## 🏨 Table: `rooms`
 
-### SQL
+Stores information about rooms available for booking or rage room use.
 
 ```sql
 CREATE TABLE rooms (
@@ -24,30 +28,16 @@ CREATE TABLE rooms (
     image_path VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     props TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    status VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'available',
     PRIMARY KEY (id)
 );
 ```
 
-### Description
-
-Stores information about rooms available for booking or listing.
-
-| Column       | Type            | Description                              |
-|--------------|------------------|------------------------------------------|
-| `id`         | INT(11)          | Primary Key, Auto Increment              |
-| `name`       | VARCHAR(100)     | Name of the room                         |
-| `description`| TEXT             | Optional room description                |
-| `room_type`  | VARCHAR(20)      | Room type (e.g., single, deluxe)         |
-| `price`      | DECIMAL(10,2)    | Room price                               |
-| `image_path` | VARCHAR(255)     | Path to room image                       |
-| `created_at` | TIMESTAMP        | Auto-generated timestamp on creation     |
-| `props`      | TEXT             | Extra room features (JSON/text)          |
-
 ---
 
-## 🍽️ Table: `items`
+## 🍔 Table: `items`
 
-### SQL
+Stores all menu items available to order.
 
 ```sql
 CREATE TABLE items (
@@ -63,26 +53,11 @@ CREATE TABLE items (
 );
 ```
 
-### Description
-
-Stores menu items or inventory entries like meals, snacks, and beverages.
-
-| Column       | Type                                           | Description                     |
-|--------------|------------------------------------------------|---------------------------------|
-| `id`         | INT(11)                                        | Primary Key, Auto Increment     |
-| `name`       | VARCHAR(255)                                   | Item name                       |
-| `description`| TEXT                                           | Optional item description       |
-| `category`   | ENUM('Meal', 'Drink', 'Snack', 'Dessert', 'Other') | Category of item            |
-| `price`      | DECIMAL(10,2)                                  | Item price                      |
-| `image_path` | VARCHAR(255)                                   | Path to item image              |
-| `created_at` | TIMESTAMP                                      | Time of creation                |
-| `photo`      | VARCHAR(255)                                   | Alternate/additional image      |
-
 ---
 
-## 👤 Table: `users`
+## 👥 Table: `users`
 
-### SQL
+Contains user accounts and profiles.
 
 ```sql
 CREATE TABLE users (
@@ -99,58 +74,82 @@ CREATE TABLE users (
 );
 ```
 
-### Description
-
-Stores user account data.
-
-| Column     | Type          | Description                                 |
-|------------|----------------|---------------------------------------------|
-| `id`       | INT(11)        | Primary Key, Auto Increment                 |
-| `name`     | VARCHAR(100)   | Full name                                   |
-| `email`    | VARCHAR(100)   | User email                                  |
-| `phone`    | VARCHAR(20)    | Contact number                              |
-| `address`  | VARCHAR(255)   | User's address                              |
-| `username` | VARCHAR(50)    | Login username (indexed)                    |
-| `password` | TEXT           | Hashed user password                        |
-| `role`     | TEXT           | User role (e.g., admin, user) - NOT NULL    |
-
 ---
 
-## 🛡 Notes
+## 💳 Table: `transactions`
 
-- All tables use `utf8mb4` character set and `utf8mb4_general_ci` collation.
-- Primary keys are `AUTO_INCREMENT`.
-- `created_at` fields default to the current time (`CURRENT_TIMESTAMP`).
-- Indexes are used for `username` to optimize authentication performance.
+Captures all room booking transactions.
 
----
-
-## 🔐 Recommendations
-
-- Use strong hashing (e.g., bcrypt) for passwords.
-- Sanitize user input to prevent SQL injection and XSS.
-- Consider adding `UNIQUE` constraints to `username` and `email` fields.
-
----
-
-## 🛠 Future Enhancements
-
-- Add `FOREIGN KEY` constraints between users and other related data.
-- Include `updated_at` and `deleted_at` fields for better record management.
-- Normalize repeated information across tables where applicable.
-
-
-
-
-for adding history 
-CREATE TABLE history_transactions (
-  transaction_id INT PRIMARY KEY,
-  username VARCHAR(100),
-  room_id INT,
-  room_name VARCHAR(255),
-  price DECIMAL(10,2),
-  date_to_avail DATE,
-  created_at DATETIME,
-  status VARCHAR(50),
-  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+```sql
+CREATE TABLE transactions (
+    transaction_id INT(11) NOT NULL AUTO_INCREMENT,
+    username VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    phone_number VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    room_id INT(11) NOT NULL,
+    room_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    date_to_avail DATE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Pending',
+    PRIMARY KEY (transaction_id)
 );
+```
+
+---
+
+## 🧾 Table: `ordered_foods`
+
+Tracks food orders tied to transactions.
+
+```sql
+CREATE TABLE ordered_foods (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    transaction_id INT(11),
+    username VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    room_id INT(11),
+    room_name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    food_id INT(11),
+    food_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    quantity INT(11),
+    total_price DECIMAL(10,2),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
+```
+
+---
+
+## 📜 Table: `history_transactions`
+
+Archive of completed transactions for reporting or audit.
+
+```sql
+CREATE TABLE history_transactions (
+    transaction_id INT PRIMARY KEY,
+    username VARCHAR(100),
+    room_id INT,
+    room_name VARCHAR(255),
+    price DECIMAL(10,2),
+    date_to_avail DATE,
+    created_at DATETIME,
+    status VARCHAR(50),
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## 🛠 Recommendations
+
+- Always hash passwords using strong algorithms like `bcrypt`.
+- Sanitize user inputs and escape queries to prevent SQL injection.
+- Use `FOREIGN KEY` constraints to enforce data relationships (optional for now).
+- Add `UNIQUE` constraints on usernames and emails in `users`.
+
+---
+
+## 📈 Future Enhancements
+
+- Add `updated_at` and `deleted_at` timestamps for better record tracking.
+- Normalize tables to reduce redundant data.
+- Implement triggers or stored procedures for automatic archiving.
