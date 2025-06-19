@@ -13,24 +13,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['txn_id'], $_POST['act
         $new_status = ($action === 'approve') ? 'Approved' : 'Rejected';
         $stmt = $conns->prepare("UPDATE transactions SET status = ? WHERE transaction_id = ?");
         $stmt->bind_param("si", $new_status, $id);
-        $stmt->execute(); $stmt->close();
+        $stmt->execute(); 
+        $stmt->close();
         $success = "Transaction #$id marked as $new_status.";
 
     } elseif ($action === 'done') {
         $stmt = $conns->prepare("INSERT INTO history_transactions SELECT *, NOW() AS completed_at FROM transactions WHERE transaction_id = ?");
         $stmt->bind_param("i", $id);
-        $stmt->execute(); $stmt->close();
+        $stmt->execute(); 
+        $stmt->close();
 
         $stmt = $conns->prepare("DELETE FROM transactions WHERE transaction_id = ?");
         $stmt->bind_param("i", $id);
-        $stmt->execute(); $stmt->close();
+        $stmt->execute(); 
+        $stmt->close();
 
         $success = "Transaction #$id moved to history.";
 
     } elseif ($action === 'delete') {
         $stmt = $conns->prepare("DELETE FROM transactions WHERE transaction_id = ?");
         $stmt->bind_param("i", $id);
-        $stmt->execute(); $stmt->close();
+        $stmt->execute(); 
+        $stmt->close();
 
         $success = "Transaction #$id deleted.";
     }
@@ -38,8 +42,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['txn_id'], $_POST['act
 
 $txns = [];
 $result = $conns->query("SELECT * FROM transactions ORDER BY created_at DESC");
-while ($r = $result->fetch_assoc()) { $txns[] = $r; }
+while ($r = $result->fetch_assoc()) {
+    $txns[] = $r;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,13 +86,24 @@ while ($r = $result->fetch_assoc()) { $txns[] = $r; }
 
     <table>
       <thead>
-        <tr><th>#</th><th>User</th><th>Room</th><th>Price</th><th>Date</th><th>Status</th><th>Created</th><th>Action</th></tr>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Phone</th>
+          <th>Room</th>
+          <th>Price</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
       </thead>
       <tbody>
         <?php foreach ($txns as $tx): ?>
         <tr>
           <td><?= $tx['transaction_id'] ?></td>
           <td><?= htmlspecialchars($tx['username']) ?></td>
+          <td><?= htmlspecialchars($tx['phone_number']) ?></td>
           <td><?= htmlspecialchars($tx['room_name']) ?></td>
           <td>₱<?= number_format($tx['price'],2) ?></td>
           <td><?= htmlspecialchars($tx['date_to_avail']) ?></td>
@@ -93,20 +111,28 @@ while ($r = $result->fetch_assoc()) { $txns[] = $r; }
           <td><?= htmlspecialchars($tx['created_at']) ?></td>
           <td>
             <?php if ($tx['status']==='Pending'): ?>
-              <form method="POST"><input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
-                                     <input type="hidden" name="action" value="approve">
-                                     <button class="btn btn-approve">Approve</button></form>
-              <form method="POST"><input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
-                                     <input type="hidden" name="action" value="reject">
-                                     <button class="btn btn-reject">Reject</button></form>
+              <form method="POST">
+                <input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
+                <input type="hidden" name="action" value="approve">
+                <button class="btn btn-approve">Approve</button>
+              </form>
+              <form method="POST">
+                <input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
+                <input type="hidden" name="action" value="reject">
+                <button class="btn btn-reject">Reject</button>
+              </form>
             <?php elseif ($tx['status']==='Approved'): ?>
-              <form method="POST"><input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
-                                     <input type="hidden" name="action" value="done">
-                                     <button class="btn btn-done">Done</button></form>
+              <form method="POST">
+                <input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
+                <input type="hidden" name="action" value="done">
+                <button class="btn btn-done">Done</button>
+              </form>
             <?php elseif ($tx['status']==='Rejected'): ?>
-              <form method="POST"><input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
-                                     <input type="hidden" name="action" value="delete">
-                                     <button class="btn btn-delete">Delete</button></form>
+              <form method="POST">
+                <input type="hidden" name="txn_id" value="<?= $tx['transaction_id'] ?>">
+                <input type="hidden" name="action" value="delete">
+                <button class="btn btn-delete">Delete</button>
+              </form>
             <?php endif; ?>
           </td>
         </tr>

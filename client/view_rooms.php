@@ -16,9 +16,48 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// ✅ Handle booking form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $username = $_SESSION['username'];
+    $phone_number = $_POST['phone_number'] ?? '';
+    $room_id = $_POST['room_id'] ?? '';
+    $address = $_POST['address'] ?? '';
+    $date_to_avail = $_POST['date_to_avail'] ?? '';
+
+    // Fetch room details for price & name
+    $stmt = $conn->prepare("SELECT name, price FROM rage_rooms WHERE id = ?");
+    $stmt->bind_param("i", $room_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $room = $result->fetch_assoc()) {
+        $room_name = $room['name'];
+        $price = $room['price'];
+
+        // Insert into transactions
+        $insert = $conn->prepare("INSERT INTO transactions (username, phone_number, room_id, room_name, price, date_to_avail, status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')");
+        $insert->bind_param("ssisss", $username, $phone_number, $room_id, $room_name, $price, $date_to_avail);
+        $insert->execute();
+
+        if ($insert->affected_rows > 0) {
+            echo "<script>alert('Booking successful!');</script>";
+        } else {
+            echo "<script>alert('Booking failed.');</script>";
+        }
+
+        $insert->close();
+    } else {
+        echo "<script>alert('Room not found.');</script>";
+    }
+
+    $stmt->close();
+}
+
+// Fetch rooms
 $sql = "SELECT * FROM rage_rooms ORDER BY created_at DESC";
 $result = $conn->query($sql);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,13 +70,28 @@ $result = $conn->query($sql);
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="../LandingPage.php">Rage Room & Resto</a>
-        <div class="collapse navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a href="UserPage.php" class="nav-link">Back to Dashboard</a></li>
-                <li class="nav-item"><a href="../logout.php" class="nav-link text-danger">Logout</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">📞 0927-743-3290</a></li>
+
+          
+                <?php if (isset($_SESSION['username'])): ?>
+                          <li class="nav-item"><a class="nav-link" href="transaction_request.php">Transaction</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $role === 'admin' ? '../admin/Home.php' : 'LandingPage.php' ?>">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">Logout</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
@@ -82,7 +136,7 @@ $result = $conn->query($sql);
 <!-- Booking Modal -->
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form method="POST" action="book_room.php">
+    <form method="POST" action="view_rooms.php">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Book Room</h5>
@@ -91,12 +145,12 @@ $result = $conn->query($sql);
         <div class="modal-body">
             <input type="hidden" name="room_id" id="modalRoomId">
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" value="<?= htmlspecialchars($_SESSION['username']) ?>" disabled>
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control" value="<?= htmlspecialchars($_SESSION['username']) ?>" disabled>
             </div>
             <div class="mb-3">
                 <label for="phone" class="form-label">Phone Number</label>
-                <input type="text" name="phone" class="form-control" required>
+                <input type="text" name="phone_number" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label for="address" class="form-label">Address</label>

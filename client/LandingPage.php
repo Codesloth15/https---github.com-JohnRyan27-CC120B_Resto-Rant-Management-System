@@ -152,7 +152,8 @@ $conn->close();
                         <div class="card-body text-center">
                             <h5 class="card-title"><?= $dish['title'] ?></h5>
                             <p class="card-text"><?= $dish['desc'] ?></p>
-                            <button class="btn btn-primary book-btn">Book</button>
+           <button class="btn btn-primary order-btn">Order</button>
+
                         </div>
                     </div>
                 </div>
@@ -204,6 +205,7 @@ $conn->close();
 
 <!-- Book button logic -->
 <script>
+    // Handle Rage Room "Book" buttons
     document.querySelectorAll('.book-btn').forEach(button => {
         button.addEventListener('click', () => {
             <?php if (isset($_SESSION['username'])): ?>
@@ -214,7 +216,20 @@ $conn->close();
             <?php endif; ?>
         });
     });
+
+    // Handle Resto "Order" buttons
+    document.querySelectorAll('.order-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            <?php if (isset($_SESSION['username'])): ?>
+                window.location.href = "order_foods.php";
+            <?php else: ?>
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            <?php endif; ?>
+        });
+    });
 </script>
+
 
 </body>
 </html>
