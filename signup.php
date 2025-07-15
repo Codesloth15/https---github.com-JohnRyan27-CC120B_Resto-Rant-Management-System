@@ -83,17 +83,20 @@ $conn->close();
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             display: flex;
+            background-size: cover;
+            background-repeat: no-repeat;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+                     background-image: url('./img/l.jpg');
         }
 
         .signup-container {
             background: #ffffff;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 10px;
             width: 100%;
             max-width: 400px;
             text-align: center;
@@ -163,11 +166,37 @@ $conn->close();
 
         .login-prompt a:hover {
             text-decoration: underline;
+        }.login-wrapper{
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            height: 700px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background-color:rgb(244, 244, 244);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)        ;
+        }.login-logo{
+width: 500px;
+        }      .login-container {
+           justify-content: center;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="signup-container">
+    <div class="login-wrapper">
+<div class="signup-container">
         <h2>Sign Up</h2>
         <?php if (!empty($error_message)): ?>
             <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
@@ -209,5 +238,11 @@ $conn->close();
             Already have an account? <a href="login.php">Log in</a>
         </p>
     </div>
+    <div class="login-logo">
+      
+        <img src="./img/logomain.png" alt="Logo" style="width: 400px; height: auto; display: block; margin: 0 auto;">
+    </div>
+    </div>
+    
 </body>
 </html>

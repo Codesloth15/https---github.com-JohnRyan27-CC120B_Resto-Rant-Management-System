@@ -41,11 +41,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Role-based redirection
                 switch ($_SESSION['role']) {
                     case 'admin':
-                        $_SESSION['redirect_url'] = 'Home.php';
+                        $_SESSION['redirect_url'] = 'transaction.php';
                         break;
                     case 'user':
                     default:
-                        $_SESSION['redirect_url'] = 'Home.php';
+                        $_SESSION['redirect_url'] = 'transaction.php';
                         break;
                 }
 
@@ -82,17 +82,12 @@ $conn->close();
             align-items: center;
             height: 100vh;
             margin: 0;
+            background-size: cover;
+            background-repeat: no-repeat;
+             background-image: url('./img/l.jpg');
         }
 
-        .login-container {
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
+  
 
         .login-container h2 {
             margin-bottom: 20px;
@@ -152,11 +147,50 @@ $conn->close();
 
         .signup-prompt a:hover {
             text-decoration: underline;
+        }.login-wrapper{
+            display: flex;
+            width: 100%;
+            max-width: 750px;
+            height: 600px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background-color:rgb(244, 244, 244);
+           
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)        ;
+        }.login-logo{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+width: 500px;
+        }      .login-container {
+           justify-content: center;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="login-wrapper">
+        
+        <div class="login-logo">
+<h1>
+            Welcome Admin
+        </h1>
+            <img src="./img/logomain.png" alt="Logo" style="width: 400px; height: auto; display: block; margin: 0 auto;">
+        </div>
+  <div class="login-container">
+      
         <h2>Log In</h2>
         <?php if (!empty($error_message)): ?>
             <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
@@ -176,5 +210,7 @@ $conn->close();
             Don't have an account? <a href="signup.php">Sign up</a>
         </p>
     </div>
+    </div>
+  
 </body>
 </html>

@@ -22,14 +22,14 @@ $user_stmt->execute();
 $user_result = $user_stmt->get_result();
 $user_data = $user_result->fetch_assoc();
 
-// Fetch room bookings
+// Fetch user transactions (room bookings)
 $txn_stmt = $conn->prepare("SELECT * FROM transactions WHERE username = ? ORDER BY created_at DESC");
 $txn_stmt->bind_param("s", $username);
 $txn_stmt->execute();
 $txn_result = $txn_stmt->get_result();
 
-// Fetch food orders
-$order_stmt = $conn->prepare("SELECT id, total, status FROM order_receipts WHERE username = ? ORDER BY created_at DESC LIMIT 5");
+// Fetch user food orders
+$order_stmt = $conn->prepare("SELECT * FROM order_receipts WHERE username = ? ORDER BY created_at DESC");
 $order_stmt->bind_param("s", $username);
 $order_stmt->execute();
 $order_result = $order_stmt->get_result();
@@ -41,7 +41,6 @@ $order_result = $order_stmt->get_result();
     <meta charset="UTF-8">
     <title>Your Booking Notifications</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .divider {
@@ -59,7 +58,6 @@ $order_result = $order_stmt->get_result();
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="#">📞 0927-743-3290</a></li>
@@ -80,7 +78,6 @@ $order_result = $order_stmt->get_result();
     <div class="row">
         <!-- Left Sidebar -->
         <div class="col-md-3 divider">
-            <!-- User Info -->
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-primary text-white">👤 User Information</div>
                 <div class="card-body">
@@ -89,46 +86,18 @@ $order_result = $order_stmt->get_result();
                     <p><strong>Phone:</strong> <?= htmlspecialchars($user_data['phone']) ?></p>
                     <p><strong>Address:</strong> <?= htmlspecialchars($user_data['address']) ?></p>
                 </div>
-                
             </div>
-
-            <!-- Recent Food Orders -->
             <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">🍽 Recent Orders</div>
-                
-                <div class="card-body p-2">
-                             <button  class="btn btn-primary mb-3">
-                   <a href="order_receipt.php">
+                <div class="card-header bg-secondary text-white">📩 Notifications</div>
+                <div class="card-body">
+          <button  class="btn btn-primary mb-3">
+                   <a href="transaction_request.php">
                     view
                    </a> 
           </button>
-                    <?php if ($order_result->num_rows > 0): ?>
-                        <ul class="list-group list-group-flush small">
-                            <?php while ($order = $order_result->fetch_assoc()): ?>
-                                <li class="list-group-item d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <strong>Order #<?= $order['id'] ?></strong><br>
-                                        ₱<?= number_format($order['total'], 2) ?>
-                                    </div>
-                                    <span class="badge bg-<?= $order['status'] === 'Done' ? 'success' : 'warning text-dark' ?>">
-                                        <?= htmlspecialchars($order['status']) ?>
-                                    </span>
-                                </li>
-                            <?php endwhile; ?>
-                        </ul>
-                    <?php else: ?>
-                        <div class="text-muted small">No recent orders.</div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Notifications Section -->
-        <div class="col-md-9">
-            <h3 class="mb-4 text-center">📩 Your Booking Notifications</h3>
-
+            <!-- Room Booking Transactions -->
             <?php if ($txn_result->num_rows > 0): ?>
-                <ul class="list-group">
+                <ul class="list-group mb-4">
                     <?php while ($row = $txn_result->fetch_assoc()): ?>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div>
@@ -148,15 +117,62 @@ $order_result = $order_stmt->get_result();
                     <?php endwhile; ?>
                 </ul>
             <?php else: ?>
-                <div class="alert alert-info text-center">You have no booking notifications yet.</div>
+                <div class="alert alert-info text-center">You have no room booking notifications yet.</div>
+            <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Notifications Section -->
+        <div class="col-md-9">
+            <!-- Food Orders -->
+            <h3 class="mb-4 text-center">🍽️ Your Food Orders</h3>
+            <?php if ($order_result->num_rows > 0): ?>
+                <ul class="list-group">
+                    <?php while ($order = $order_result->fetch_assoc()): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-bold">
+                                    Order #<?= $order['id'] ?> — ₱<?= number_format($order['total'], 2) ?>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#summaryModal<?= $order['id'] ?>">View</button>
+                                </div>
+                                Ordered on: <?= date("F j, Y, g:i a", strtotime($order['created_at'])) ?><br>
+                                Status:
+                                <?php if ($order['status'] === 'Done'): ?>
+                                    <span class="badge bg-success">Served</span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark"><?= htmlspecialchars($order['status']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </li>
+
+                        <!-- Modal for Summary -->
+                        <div class="modal fade" id="summaryModal<?= $order['id'] ?>" tabindex="-1" aria-labelledby="summaryLabel<?= $order['id'] ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title" id="summaryLabel<?= $order['id'] ?>">📝 Order Summary (Order #<?= $order['id'] ?>)</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <?= nl2br(htmlspecialchars($order['summary'])) ?>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </ul>
+            <?php else: ?>
+                <div class="alert alert-info text-center">You have no food order notifications yet.</div>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
 <style>
@@ -165,6 +181,7 @@ $order_result = $order_stmt->get_result();
                     text-decoration: none;
           }
     </style>
+
 <?php
 $user_stmt->close();
 $txn_stmt->close();

@@ -6,6 +6,7 @@ $username = "root";
 $password = "";
 $dbname = "resto_rant_management_system";
 
+// Connect to DB
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -13,108 +14,195 @@ if ($conn->connect_error) {
 
 $error_message = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $username_input = trim($_POST['username']);
+    $password_input = $_POST['password'];
 
-    if (empty($username) || empty($password)) {
-        $error_message = "Username and password are required.";
+    if (empty($username_input) && empty($password_input)) {
+        $error_message = "Both username and password are required.";
+    } elseif (empty($username_input)) {
+        $error_message = "Username is required.";
+    } elseif (empty($password_input)) {
+        $error_message = "Password is required.";
     } else {
-        $sql = "SELECT id, password FROM users WHERE username = '$username'";
-        $result = $conn->query($sql);
+        // Get full user data
+      // Get full user data including address
+$stmt = $conn->prepare("SELECT id, username, password, role, phone, address FROM users WHERE username = ?");
+$stmt->bind_param("s", $username_input);
+$stmt->execute();
+$result = $stmt->get_result();
 
-        if ($result && $result->num_rows === 1) {
-            $user = $result->fetch_assoc();
+if ($result && $result->num_rows > 0) {
+    $user = $result->fetch_assoc();
 
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $username;
-                header("Location: ../client/LandingPage.php"); // Replace with your actual dashboard
-                exit;
-            } else {
-                $error_message = "Incorrect password.";
-            }
-        } else {
-            $error_message = "Username not found.";
-        }
+    if (password_verify($password_input, $user['password'])) {
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = strtolower($user['role']);
+        $_SESSION['phone'] = $user['phone'];
+        $_SESSION['address'] = $user['address']; // Store address in session ✅
+
+        echo "<script>window.location.href='splash.php';</script>";
+        exit;
+    } else {
+        $error_message = "Incorrect password.";
     }
-
-    $conn->close();
+} else {
+    $error_message = "Username not found.";
 }
+
+
+        $stmt->close();
+    }
+}
+
+$conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Rage Room & Resto</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In</title>
+    <link rel="stylesheet" href="css/styles.css">
     <style>
-        html, body {
-            height: 100%;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
+            background-size: cover;
+            background-repeat: no-repeat;
+             background-image: url('../img/l.jpg');
+        }
+
+  
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .signup-prompt {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .signup-prompt a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .signup-prompt a:hover {
+            text-decoration: underline;
+        }.login-wrapper{
+            display: flex;
+            width: 100%;
+            max-width: 750px;
+            height: 600px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background-color:rgb(244, 244, 244);
+           
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)        ;
+        }.login-logo{
+    display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+width: 500px;
+        }      .login-container {
+           justify-content: center;
             display: flex;
             flex-direction: column;
-            background: url('../img/l.jpg') no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        .content-wrapper {
-            flex: 1;
-        }
-
-        footer {
-            background-color: #343a40;
-            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="../client/LandingPage.php">Rage Room & Resto</a>
-    </div>
-</nav>
-<!-- Login Form -->
-<div class="container-fluid content-wrapper d-flex align-items-center justify-content-center">
-    <div class="row justify-content-center w-100">
-        <div class="col-md-3">
-            <div class="card shadow-lg">
-                <div class="card-body">
-                    <h3 class="text-center mb-4">Log In</h3>
-
-                    <?php if (!empty($error_message)): ?>
-                        <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
-                    <?php endif; ?>
-
-                    <form method="POST" action="">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Log In</button>
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <small>Don't have an account? <a href="signup.php">Sign up</a></small>
-                    </div>
-                </div>
-            </div>
+    <div class="login-wrapper">
+        <div class="login-logo">
+            <h1>Welcome</h1>
+            <img src="../img/logomain.png" alt="Logo" style="width: 400px; height: auto; display: block; margin: 0 auto;">
         </div>
+  <div class="login-container">
+    
+        <h2>Log In</h2>
+        <?php if (!empty($error_message)): ?>
+            <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
+        <?php endif; ?>
+        <form method="POST">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+        <p class="signup-prompt">
+            Don't have an account? <a href="./signup.php">Sign up</a>
+        </p>
     </div>
-</div>
-
-
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+  
 </body>
 </html>

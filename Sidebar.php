@@ -87,6 +87,11 @@
       <i class="material-icons">meeting_room</i>
       <span class="menu-label">Room</span>
     </a>
+  <a href="History.php" class="menu-item">
+  <i class="material-icons">history</i>
+  <span class="menu-label">History</span>
+</a>
+
   </div>
 </div>
 
