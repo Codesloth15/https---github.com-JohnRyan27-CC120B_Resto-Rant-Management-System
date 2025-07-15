@@ -171,3 +171,37 @@ CREATE TABLE testimonials (
 - Normalize tables to reduce redundant data.
 - Implement triggers or stored procedures for automatic archiving.
 
+📋 Table: order_receipts
+Stores food order receipts for active or pending transactions.
+
+```sql
+CREATE TABLE order_receipts (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    username VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    room_id INT(11),
+    room_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    summary TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    total DECIMAL(10,2),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Pending', 'Done') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Pending',
+    PRIMARY KEY (id)
+);
+
+
+
+📋 Table: history_order_receipts
+Stores archived or historical records of completed food orders along with summaries.
+
+CREATE TABLE history_order_receipts (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    username VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    room_id INT(11) NOT NULL,
+    room_name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    status VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    created_at DATETIME NOT NULL,
+    summary TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    total DECIMAL(10,2) NOT NULL,
+    completed_at DATETIME,
+    PRIMARY KEY (id)
+);
+```

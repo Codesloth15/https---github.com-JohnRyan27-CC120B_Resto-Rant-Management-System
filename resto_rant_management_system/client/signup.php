@@ -13,6 +13,8 @@ if ($conn->connect_error) {
 
 $error_message = "";
 $success_message = "";
+
+// Define variables for retaining values
 $name = $email = $phone = $address = $username = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -54,96 +56,194 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $insert_sql = "INSERT INTO users (name, email, phone, address, username, password,role)
-                           VALUES ('$name', '$email', '$phone', '$address', '$username', '$hashed_password','user')";
+            $insert_sql = "INSERT INTO users (name, email, phone, address, username, password)
+                           VALUES ('$name', '$email', '$phone', '$address', '$username', '$hashed_password')";
 
             if ($conn->query($insert_sql) === TRUE) {
                 $success_message = "Account created successfully. You can now log in.";
-                $name = $email = $phone = $address = $username = "";
+                $name = $email = $phone = $address = $username = ""; // Clear values on success
             } else {
                 $error_message = "Error creating account: " . $conn->error;
             }
         }
     }
-
-    $conn->close();
 }
-?>
 
+$conn->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sign Up - Rage Room & Resto</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            background-size: cover;
+            background-repeat: no-repeat;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+                     background-image: url('../img/l.jpg');
+        }
+
+        .signup-container {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .signup-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .success-message {
+            color: green;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .login-prompt {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .login-prompt a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .login-prompt a:hover {
+            text-decoration: underline;
+        }.login-wrapper{
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            height: 700px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background-color:rgb(244, 244, 244);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)        ;
+        }.login-logo{
+width: 500px;
+        }      .login-container {
+           justify-content: center;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            text-align: center;
+        }
+    </style>
 </head>
-<body style="background: url('../img/l.jpg') no-repeat center center fixed; background-size: cover;">
+<body>
+    <!-- Navbar -->
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="../client/LandingPage.php">Rage Room & Resto</a>
-    </div>
-</nav>
-
-<!-- Signup Form -->
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-body">
-                    <h3 class="text-center mb-4">Create Your Account</h3>
-
-                    <?php if (!empty($error_message)): ?>
-                        <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
-                    <?php elseif (!empty($success_message)): ?>
-                        <div class="alert alert-success"><?= htmlspecialchars($success_message) ?></div>
-                    <?php endif; ?>
-
-                    <form method="POST" action="">
-                        <div class="mb-3">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($name) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($email) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Phone</label>
-                            <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($phone) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <input type="text" name="address" class="form-control" value="<?= htmlspecialchars($address) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" value="<?= htmlspecialchars($username) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
-                            <input type="password" name="confirm_password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <small>Already have an account? <a href="../client/loginPage.php">Log in</a></small>
-                    </div>
-                </div>
+    <div class="login-wrapper">
+<div class="signup-container">
+        <h2>Sign Up</h2>
+        <?php if (!empty($error_message)): ?>
+            <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
+        <?php elseif (!empty($success_message)): ?>
+            <p class="success-message"><?php echo htmlspecialchars($success_message); ?></p>
+        <?php endif; ?>
+        <form method="POST">
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input type="text" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
             </div>
-        </div>
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+            </div>
+            <div class="input-group">
+                <label for="phone">Phone Number</label>
+                <input type="text" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required>
+            </div>
+            <div class="input-group">
+                <label for="address">Address</label>
+                <input type="text" name="address" value="<?php echo htmlspecialchars($address); ?>" required>
+            </div>
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" value="<?php echo htmlspecialchars($username); ?>" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="input-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" name="confirm_password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p class="login-prompt">
+            Already have an account? <a href="./loginPage.php">Log in</a>
+        </p>
     </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="login-logo">
+        <img src="../img/logomain.png" alt="Logo" style="width: 400px; height: auto; display: block; margin: 0 auto;">
+    </div>
+    </div>
+    
 </body>
 </html>

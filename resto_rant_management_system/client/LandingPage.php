@@ -24,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_testimonial'])
     $message = trim($_POST['testimony']);
     $username = $_SESSION['username'];
 
+
     if (!empty($message)) {
         $stmt = $conn->prepare("INSERT INTO testimonials (username, message) VALUES (?, ?)");
         $stmt->bind_param("ss", $username, $message);
@@ -56,9 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_testimonial'])
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = strtolower($user['role']);
-                $_SESSION['redirect_url'] = ($_SESSION['role'] === 'admin') ? 'LandingPage.php' : 'LandingPage.php';
+                  echo "<script>window.location.href='splash.php';</script>";
 
-        
                 exit;
             } else {
                 $_SESSION['login_error_modal'] = "Incorrect password.";
@@ -68,6 +68,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_testimonial'])
         }
 
         $stmt->close();
+    }
+}
+if (isset($_POST['submit'])) {
+
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
+    $testimony = mysqli_real_escape_string($conn, $_POST['testimony']);
+    $rating = intval($_POST['rating']); // Convert to integer
+    $username = $_SESSION['username'];
+
+    $query = "INSERT INTO testimonials(username, message, rating) 
+              VALUES ('$username', '$testimony', $rating)";
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        echo "<script>alert('Testimony submitted successfully!');</script>";
+    } else {
+        $error = mysqli_error($conn);
+        echo "<script>alert('Error submitting testimony: " . addslashes($error) . "');</script>";
     }
 }
 
@@ -87,6 +107,7 @@ $conn->close();
 </head>
 <body>
 
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
@@ -99,22 +120,30 @@ $conn->close();
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="#">📞 0927-743-3290</a></li>
                 <li class="nav-item"><a class="nav-link" href="#rage">RageRoom</a></li>
-                   <li class="nav-item"><a class="nav-link" href="#Restaurant">Resto</a></li>
-          
-          
-                <?php if (isset($_SESSION['username'])): ?>
-                          <li class="nav-item"><a class="nav-link" href="transaction_request.php">Transaction</a></li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= $role === 'admin' ? '../admin/Home.php' : 'LandingPage.php' ?>">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">Logout</a>
-                    </li>
-                <?php endif; ?>
+                <li class="nav-item"><a class="nav-link" href="#Restaurant">Resto</a></li>
+
+        <?php if (isset($_SESSION['username'])): ?>
+    <li class="nav-item">
+        <a class="nav-link" href="transaction_request.php">Transaction</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="LandingPage.php">Home</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-danger" href="logout.php">Logout</a> <!-- Logout button -->
+    </li>
+<?php else: ?>
+    <li class="nav-item">
+        <a class="nav-link text-success" href="/resto_rant_management_system/client/loginPage.php">Login</a> <!-- Login button -->
+    </li>
+<?php endif; ?>
+
+                
             </ul>
         </div>
     </div>
 </nav>
+
 
 <!-- Hero Section -->
 <section class="hero-section text-white text-center d-flex align-items-center" style="background-image: url('../img/l.jpg'); background-size: cover; background-position: center; height: 50vh;">
@@ -244,7 +273,7 @@ $conn->close();
 $testimonials = [];
 $conn = new mysqli($servername, $db_username, $db_password, $dbname);
 if (!$conn->connect_error) {
-    $result = $conn->query("SELECT username, message, created_at FROM testimonials ORDER BY created_at DESC LIMIT 10");
+    $result = $conn->query("SELECT username, message, rating, created_at FROM testimonials ORDER BY created_at DESC LIMIT 10");
     while ($row = $result->fetch_assoc()) {
         $testimonials[] = $row;
     }
@@ -255,7 +284,7 @@ if (!$conn->connect_error) {
 <section class="py-5 bg-light">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fw-bold">Testimonials</h2>
+            <h2 class="fw-bold">Reviews:</h2>
             <?php if (isset($_SESSION['username'])): ?>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testimonialModal">Write Testimony</button>
             <?php endif; ?>
@@ -277,6 +306,17 @@ if (!$conn->connect_error) {
                                     <p>"<?= htmlspecialchars($testimonial['message']) ?>"</p>
                                     <footer class="blockquote-footer mt-2">- <?= htmlspecialchars($testimonial['username']) ?></footer>
                                 </blockquote>
+                                <!-- Star Rating -->
+                                <div class="mt-2 text-warning">
+                                    <?php
+                                        $stars = intval($testimonial['rating']);
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            echo $i <= $stars
+                                                ? '<i class="bi bi-star-fill"></i>'
+                                                : '<i class="bi bi-star"></i>';
+                                        }
+                                    ?>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -313,7 +353,7 @@ if (!$conn->connect_error) {
 
             <script>
                 const wrapper = document.getElementById('testimonialWrapper');
-                const cardWidth = wrapper.querySelector('.testimonial-card').offsetWidth + 16; // 16px gap
+                const cardWidth = wrapper.querySelector('.testimonial-card').offsetWidth + 16;
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
 
@@ -331,6 +371,9 @@ if (!$conn->connect_error) {
     </div>
 </section>
 
+<!-- Bootstrap Icons (include in your <head> or before closing </body> tag) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
 <!-- Footer -->
 <footer class="bg-dark text-white text-center py-3">
     <p>&copy; <?= date("Y") ?> <?= $site_title ?>. All rights reserved.</p>
@@ -340,7 +383,7 @@ if (!$conn->connect_error) {
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="post" action="LandingPage.php">
+      <form method="post" >
         <div class="modal-header">
           <h5 class="modal-title">Login Required</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -369,7 +412,6 @@ if (!$conn->connect_error) {
   </div>
 </div>
 
-
 <!-- Testimonial Modal -->
 <div class="modal fade" id="testimonialModal" tabindex="-1" aria-labelledby="testimonialModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -383,13 +425,25 @@ if (!$conn->connect_error) {
                     <label for="testimony" class="form-label">Your message</label>
                     <textarea name="testimony" id="testimony" class="form-control" required rows="4"></textarea>
                 </div>
+                <div class="mb-3">
+                    <label for="rating" class="form-label">Rating</label>
+                    <select name="rating" id="rating" class="form-select" required>
+                        <option value="">Select a rating</option>
+                        <option value="1">1 - Poor</option>
+                        <option value="2">2 - Fair</option>
+                        <option value="3">3 - Good</option>
+                        <option value="4">4 - Very Good</option>
+                        <option value="5">5 - Excellent</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="submit" name="submit_testimonial" class="btn btn-primary">Submit</button>
+                <button type="submit" name="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
     </div>
 </div>
+
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

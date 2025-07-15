@@ -18,7 +18,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['txn_id'], $_POST['act
         $success = "Transaction #$id marked as $new_status.";
 
     } elseif ($action === 'done') {
-        // Move to history table
+        // Get the room_id before deleting the transaction
+        $stmt = $conns->prepare("SELECT room_id FROM transactions WHERE transaction_id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->bind_result($room_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Move transaction to history
         $stmt = $conns->prepare("
             INSERT INTO history_transactions (transaction_id, username, room_id, room_name, price, date_to_avail, created_at, status, completed_at)
             SELECT transaction_id, username, room_id, room_name, price, date_to_avail, created_at, status, NOW()
@@ -29,13 +37,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['txn_id'], $_POST['act
         $stmt->execute();
         $stmt->close();
 
-        // Delete from current table
+        // Delete the transaction
         $stmt = $conns->prepare("DELETE FROM transactions WHERE transaction_id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
 
-        $success = "Transaction #$id moved to history.";
+        // Update the room status to "Available"
+        if (!empty($room_id)) {
+            $stmt = $conns->prepare("UPDATE rage_rooms SET status = 'Available' WHERE id = ?");
+            $stmt->bind_param("i", $room_id);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        $success = "Transaction #$id marked as done and room set to available.";
 
     } elseif ($action === 'delete') {
         $stmt = $conns->prepare("DELETE FROM transactions WHERE transaction_id = ?");
@@ -61,25 +77,25 @@ while ($r = $result->fetch_assoc()) {
 <meta charset="UTF-8">
 <title>Admin | Transactions</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<style>
-  body { margin:0; display:flex; height:100vh; background:#f4f4f4; font-family:Arial,sans-serif; }
-  .main-wrapper { display:flex; width:100%; }
-  .content { flex:1; padding:40px; overflow-y:auto; background:white; }
-  .header { display:flex; align-items:center; margin-bottom:20px; }
-  .header h2 { display:flex; align-items:center; gap:8px; font-size:22px; }
-  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.05); }
-  th,td { padding:12px 16px; text-align:left; border-bottom:1px solid #e0e0e0; }
-  th { background:#343a40; color:#fff; }
-  tr:hover { background:#f1f1f1; }
-  .btn { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:4px; }
-  .btn-approve { background:#28a745; color:#fff; }
-  .btn-reject { background:#dc3545; color:#fff; }
-  .btn-done { background:#6c757d; color:#fff; }
-  .btn-delete { background:#343a40; color:#fff; }
-  .success { color:green; margin-bottom:10px; }
-  .error { color:red; margin-bottom:10px; }
-  form { display:inline-block; }
-</style>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; }
+        .main-wrapper { display: flex; height: 100vh; }
+        .content { flex: 1; padding: 40px; overflow-y: auto; background: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h2 { display: flex; align-items: center; font-size: 22px; gap: 8px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 16px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #343a40; color: #fff; }
+        tr:hover { background: #f1f1f1; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 4px; }
+        .btn-approve { background: #28a745; color: #fff; }
+        .btn-reject { background: #dc3545; color: #fff; }
+        .btn-done { background: #6c757d; color: #fff; }
+        .btn-cancel { background: #ffc107; color: #000; }
+        .success { color: green; margin-bottom: 10px; }
+        .error { color: red; margin-bottom: 10px; }
+        form { display: inline-block; }
+    </style>
 </head>
 <body>
 
@@ -87,7 +103,11 @@ while ($r = $result->fetch_assoc()) {
   <?php include 'Sidebar.php'; ?>
   <div class="content">
     <div class="header">
-      <h2><span class="material-icons">receipt_long</span> Transactions</h2>
+      <h2><span class="material-icons">receipt_long</span> Booking Transactions</h2>
+      <h2 class="text-secondary ms-3"><a href="Order_transaction.php">
+        View Order 
+
+      </a></h2>
     </div>
 
     <?php if($success): ?><p class="success"><?= htmlspecialchars($success) ?></p><?php endif; ?>
