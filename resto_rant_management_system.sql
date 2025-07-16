@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 15, 2025 at 08:48 AM
+-- Generation Time: Jul 16, 2025 at 08:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -193,7 +193,9 @@ CREATE TABLE `rage_rooms` (
 --
 
 INSERT INTO `rage_rooms` (`id`, `name`, `description`, `room_type`, `price`, `image_path`, `created_at`, `props`, `status`) VALUES
-(3, '2323', '23', 'Solo', 22.00, 'uploads/Desktop_Screenshot_2025.07.11_-_10.45.32.20-removebg-preview.png', '2025-07-15 05:12:06', 'eee', 'Available');
+(3, '2323', '23', 'Solo', 22.00, 'uploads/Desktop_Screenshot_2025.07.11_-_10.45.32.20-removebg-preview.png', '2025-07-15 05:12:06', 'eee', 'Available'),
+(4, 'Smash Room', 'Break plates, TVs, and glassware in our safest, most satisfying rage zone.', 'Couple', 200.00, 'uploads/rageroom1.jpg', '2025-07-16 02:00:22', 'Bat Wood Tire', 'available'),
+(5, 'Smash Room', 'Break plates, TVs, and glassware in our safest, most satisfying rage zone.', 'Couple', 200.00, 'uploads/rageroom1.jpg', '2025-07-16 03:49:00', 'Bat Wood Tire', 'available');
 
 -- --------------------------------------------------------
 
@@ -270,7 +272,8 @@ CREATE TABLE `transactions` (
   `price` decimal(10,2) NOT NULL,
   `date_to_avail` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` varchar(50) DEFAULT 'Pending'
+  `status` varchar(50) DEFAULT 'Pending',
+  `hours` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -298,7 +301,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `phone`, `address`, `username`, `pas
 (1, 'Charlou', 'ybarleycharlou04@gmail.com', '09277433290', 'Appas Tabuk City Kalinga', 'niko', '$2y$10$p0KN40p0.crQisfmA6kKz.YVDI0iG/g9.s85rrw7UxfUbcbSgCCoe', 'admin\r\n'),
 (2, 'sdfgsdf', 'sdfgsdfg@gmail.com', '09277433290', 'AppasTabukCity', 'drfdf', '$2y$10$kgqkK4f1Y.GT/glUl9D.neVIoeFyk6c61HWcQ2bSCEHRLXrFAFbTK', 'user'),
 (3, 'Charlou', 'charlou@gmail.com', '09277433290', 'Appas Tabuk City', 'naj', '$2y$10$gsa6sbyi4Tjl.X8UcFberORDZcVp6gL92BWnRRqiYrDbwfpw/dNj2', ''),
-(4, 'naj', 'naj@gmail.com', '09277422390', 'Appas Tabuk City', 'kiko', '$2y$10$ZhWXF6kAFsZZRIJwOiXnbODjmOKr2Po4uG6nSp0b0TQzjCUXLW9FS', '');
+(4, 'naj', 'naj@gmail.com', '09277422390', 'Appas Tabuk City', 'kiko', '$2y$10$ZhWXF6kAFsZZRIJwOiXnbODjmOKr2Po4uG6nSp0b0TQzjCUXLW9FS', ''),
+(5, 'Charlou', 'ybarleycharlou04@gmail.com', '09277433290', 'Appas Tabuk City Kalinga', 'Cj', '$2y$10$f8ZTmHRXCIcGwwl0lc.u5.isg2LPSM1AtFsnMQVM9ZbrbX0bEq8B2', '');
 
 --
 -- Indexes for dumped tables
@@ -379,7 +383,7 @@ ALTER TABLE `order_receipts`
 -- AUTO_INCREMENT for table `rage_rooms`
 --
 ALTER TABLE `rage_rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `resto_menu`
@@ -403,7 +407,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
