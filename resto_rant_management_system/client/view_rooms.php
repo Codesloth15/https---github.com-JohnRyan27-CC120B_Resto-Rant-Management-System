@@ -22,6 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $room_id = $_POST['room_id'] ?? '';
     $address = $_POST['address'] ?? '';
     $date_to_avail = $_POST['date_to_avail'] ?? '';
+    $hours = $_POST['hours'] ?? 1;
     $_SESSION['address'] = $address;
 
     $stmt = $conn->prepare("SELECT name, price FROM rage_rooms WHERE id = ?");
@@ -33,16 +34,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $room_name = $room['name'];
         $price = $room['price'];
 
-        // Determine booking status
         $today = date('Y-m-d');
         $status = ($date_to_avail === $today) ? 'Approved' : 'Pending';
 
-        $insert = $conn->prepare("INSERT INTO transactions (username, phone_number, room_id, room_name, price, date_to_avail, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $insert->bind_param("ssissss", $username, $phone_number, $room_id, $room_name, $price, $date_to_avail, $status);
+        $insert = $conn->prepare("INSERT INTO transactions (username, phone_number, room_id, room_name, price, date_to_avail, status, hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $insert->bind_param("ssissssi", $username, $phone_number, $room_id, $room_name, $price, $date_to_avail, $status, $hours);
         $insert->execute();
 
         if ($insert->affected_rows > 0) {
-            // ✅ Mark room as Unavailable if booking is approved today
             if ($status === 'Approved') {
                 $updateRoom = $conn->prepare("UPDATE rage_rooms SET status = 'Unavailable' WHERE id = ?");
                 $updateRoom->bind_param("i", $room_id);
@@ -61,7 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->close();
 }
 
-// Fetch Rooms
 $sql = "SELECT * FROM rage_rooms WHERE status != 'Unavailable' ORDER BY created_at DESC";
 $result = $conn->query($sql);
 ?>
@@ -135,7 +133,7 @@ $result = $conn->query($sql);
                             <p class="card-text"><?= nl2br(htmlspecialchars($room['description'])) ?></p>
                             <p><strong>Type:</strong> <?= htmlspecialchars($room['room_type']) ?></p>
                             <p><strong>Props:</strong> <?= htmlspecialchars($room['props']) ?></p>
-                            <p><strong>Price:</strong> ₱<?= number_format($room['price'], 2) ?></p>
+                            <p><strong>Price Per Hour:</strong> ₱<?= number_format($room['price'], 2) ?></p>
                         </div>
                         <div class="card-footer bg-white border-0">
                             <div class="d-flex gap-2">
@@ -180,6 +178,10 @@ $result = $conn->query($sql);
                     <div class="mb-3">
                         <label for="date" class="form-label">Date to Avail</label>
                         <input type="date" name="date_to_avail" id="dateInput" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hours" class="form-label">How Many Hours</label>
+                        <input type="number" name="hours" min="1" max="24" class="form-control" value="1" required>
                     </div>
                 </div>
                 <div class="modal-footer">

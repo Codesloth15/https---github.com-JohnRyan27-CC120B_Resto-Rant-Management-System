@@ -61,7 +61,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($conn->query($insert_sql) === TRUE) {
                 $success_message = "Account created successfully. You can now log in.";
-                $name = $email = $phone = $address = $username = ""; // Clear values on success
+                $name = $email = $phone = $address = $username = ""; 
+                  header("Location: loginPage.php");
+    exit();
+                // Clear values on success
             } else {
                 $error_message = "Error creating account: " . $conn->error;
             }

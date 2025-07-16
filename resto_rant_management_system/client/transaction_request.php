@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Check if user is logged in
 if (!isset($_SESSION['username'])) {
     header("Location: ../LandingPage.php");
     exit;
@@ -41,20 +40,22 @@ $order_result = $order_stmt->get_result();
     <meta charset="UTF-8">
     <title>Your Booking Notifications</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap CSS CDN -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .divider {
             border-right: 1px solid #ccc;
             height: 100%;
         }
+        a {
+            color: #ffffff;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
+    <div class="container-fluid px-3"> <!-- Use fluid + padding -->
         <a class="navbar-brand" href="../LandingPage.php">Rage Room & Resto</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -75,12 +76,12 @@ $order_result = $order_stmt->get_result();
     </div>
 </nav>
 
-<!-- Main Content Area -->
+
+<!-- Main Content -->
 <div class="container-fluid mt-4">
     <div class="row">
-        <!-- Left Sidebar -->
+        <!-- Sidebar -->
         <div class="col-md-3 divider">
-            <!-- User Info -->
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-primary text-white">👤 User Information</div>
                 <div class="card-body">
@@ -89,19 +90,14 @@ $order_result = $order_stmt->get_result();
                     <p><strong>Phone:</strong> <?= htmlspecialchars($user_data['phone']) ?></p>
                     <p><strong>Address:</strong> <?= htmlspecialchars($user_data['address']) ?></p>
                 </div>
-                
             </div>
 
-            <!-- Recent Food Orders -->
             <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-white">🍽 Recent Orders</div>
-                
                 <div class="card-body p-2">
-                             <button  class="btn btn-primary mb-3">
-                   <a href="order_receipt.php">
-                    view
-                   </a> 
-          </button>
+                    <button class="btn btn-primary mb-3">
+                        <a href="order_receipt.php">View</a>
+                    </button>
                     <?php if ($order_result->num_rows > 0): ?>
                         <ul class="list-group list-group-flush small">
                             <?php while ($order = $order_result->fetch_assoc()): ?>
@@ -123,16 +119,24 @@ $order_result = $order_stmt->get_result();
             </div>
         </div>
 
-        <!-- Right Notifications Section -->
+        <!-- Booking Notifications -->
         <div class="col-md-9">
             <h3 class="mb-4 text-center">📩 Your Booking Notifications</h3>
 
             <?php if ($txn_result->num_rows > 0): ?>
                 <ul class="list-group">
                     <?php while ($row = $txn_result->fetch_assoc()): ?>
+                        <?php
+                            $hours = $row['hours'] ?? 1;
+                            $totalCost = $row['price'] * $hours;
+                        ?>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div>
-                                <div class="fw-bold"><?= htmlspecialchars($row['room_name']) ?> — ₱<?= number_format($row['price'], 2) ?></div>
+                                <div class="fw-bold">
+                                    <?= htmlspecialchars($row['room_name']) ?> —
+                                    ₱<?= number_format($row['price'], 2) ?>/hr × <?= $hours ?> hr =
+                                    <strong>₱<?= number_format($totalCost, 2) ?></strong>
+                                </div>
                                 Date to Avail: <strong><?= htmlspecialchars($row['date_to_avail']) ?></strong><br>
                                 Status:
                                 <?php if ($row['status'] === 'Pending'): ?>
@@ -159,12 +163,7 @@ $order_result = $order_stmt->get_result();
 
 </body>
 </html>
-<style>
-          a{
-                    color: #ffffff;
-                    text-decoration: none;
-          }
-    </style>
+
 <?php
 $user_stmt->close();
 $txn_stmt->close();

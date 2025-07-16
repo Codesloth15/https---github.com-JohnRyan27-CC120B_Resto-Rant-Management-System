@@ -174,20 +174,20 @@ if ($result) {
 
     <div class="room-grid">
         <?php foreach ($rooms as $room): ?>
-            <div class="card">
-                <img src="<?= htmlspecialchars($room['image_path']) ?>" alt="Room Image">
-                <h3><?= htmlspecialchars($room['name']) ?></h3>
-                <p><?= htmlspecialchars($room['description']) ?></p>
-                <p><strong>Type:</strong> <?= htmlspecialchars($room['room_type']) ?></p>
-                <p><strong>Props:</strong> <?= htmlspecialchars($room['props']) ?></p>
-       
-                <p><strong>Price:</strong> $<?= $room['price'] ?></p>
-                <form method="POST" onsubmit="return confirm('Are you sure you want to delete this room?');">
-                    <input type="hidden" name="delete_room_id" value="<?= $room['id'] ?>">
-                    <button type="submit" class="btn">🗑 Delete</button>
-                </form>
-                <button type="button" class="btn btn-edit" onclick='openEditDialog(<?= json_encode($room) ?>)'>✏ Edit</button>
-            </div>
+           <div class="card">
+    <img src="<?= htmlspecialchars($room['image_path']) ?>" alt="Room Image">
+    <h3><?= htmlspecialchars($room['name']) ?></h3>
+    <p><?= htmlspecialchars($room['description']) ?></p>
+    <p><strong>Type:</strong> <?= htmlspecialchars($room['room_type']) ?></p>
+    <p><strong>Props:</strong> <?= htmlspecialchars($room['props']) ?></p>
+    <p><strong>Price per Hour:</strong> $<?= number_format($room['price'], 2) ?></p>
+    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this room?');">
+        <input type="hidden" name="delete_room_id" value="<?= $room['id'] ?>">
+        <button type="submit" class="btn">🗑 Delete</button>
+    </form>
+    <button type="button" class="btn btn-edit" onclick='openEditDialog(<?= json_encode($room) ?>)'>✏ Edit</button>
+</div>
+
         <?php endforeach; ?>
     </div>
 </div>

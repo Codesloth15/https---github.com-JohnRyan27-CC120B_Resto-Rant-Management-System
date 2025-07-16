@@ -119,8 +119,8 @@ $conn->close();
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="#">📞 0927-743-3290</a></li>
-                <li class="nav-item"><a class="nav-link" href="#rage">RageRoom</a></li>
-                <li class="nav-item"><a class="nav-link" href="#Restaurant">Resto</a></li>
+                <li class="nav-item"><a class="nav-link" href="#rage">Room</a></li>
+                <li class="nav-item"><a class="nav-link" href="#Restaurant">Menu</a></li>
 
         <?php if (isset($_SESSION['username'])): ?>
     <li class="nav-item">
