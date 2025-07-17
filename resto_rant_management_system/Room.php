@@ -1,15 +1,12 @@
 <?php
 include 'db.php';
-conn(); // $conns is now available
+conn();
 global $conns;
 
 $success = $error = "";
 
-// Handle room deletion
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_room_id'])) {
     $room_id = intval($_POST['delete_room_id']);
-
-    // Delete image file
     $stmt = $conns->prepare("SELECT image_path FROM rage_rooms WHERE id = ?");
     $stmt->bind_param("i", $room_id);
     $stmt->execute();
@@ -19,22 +16,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_room_id'])) {
     }
     $stmt->close();
 
-    // Delete DB record
     $stmt = $conns->prepare("DELETE FROM rage_rooms WHERE id = ?");
     $stmt->bind_param("i", $room_id);
-    if ($stmt->execute()) {
-        $success = "Room deleted successfully.";
-    } else {
-        $error = "Failed to delete room.";
-    }
+    $stmt->execute();
     $stmt->close();
+    $success = "Room deleted successfully.";
 }
 
-// Handle new room creation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['name']) && !isset($_POST['edit_room_id'])) {
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
-
     $price = floatval($_POST['price']);
     $room_type = trim($_POST['room_type']);
     $props = trim($_POST['props']);
@@ -44,19 +35,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['name']) && !isset($_PO
         if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
         $image_path = $target_dir . basename($_FILES["image"]["name"]);
         $image_file_type = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
-
         $allowed = ["jpg", "jpeg", "png", "gif"];
         if (in_array($image_file_type, $allowed)) {
             if (move_uploaded_file($_FILES["image"]["tmp_name"], $image_path)) {
-                $stmt = $conns->prepare("INSERT INTO rage_rooms (name, description, price, room_type, props, image_path) VALUES ( ?, ?, ?, ?, ?, ?)");
+                $stmt = $conns->prepare("INSERT INTO rage_rooms (name, description, price, room_type, props, image_path) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param("ssdsss", $name, $description, $price, $room_type, $props, $image_path);
-
-                if ($stmt->execute()) {
-                    $success = "Room added successfully.";
-                } else {
-                    $error = "Error saving room info.";
-                }
+                $stmt->execute();
                 $stmt->close();
+                $success = "Room added successfully.";
             } else {
                 $error = "Failed to upload image.";
             }
@@ -68,7 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['name']) && !isset($_PO
     }
 }
 
-// Handle room update
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
     $room_id = intval($_POST['edit_room_id']);
     $name = trim($_POST['name']);
@@ -83,7 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
         $new_image_path = $target_dir . basename($_FILES["image"]["name"]);
         $image_file_type = strtolower(pathinfo($new_image_path, PATHINFO_EXTENSION));
-
         $allowed = ["jpg", "jpeg", "png", "gif"];
         if (in_array($image_file_type, $allowed)) {
             if (!move_uploaded_file($_FILES["image"]["tmp_name"], $new_image_path)) {
@@ -113,23 +97,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
             $stmt = $conns->prepare("UPDATE rage_rooms SET name=?, description=?, room_type=?, props=?, price=? WHERE id=?");
             $stmt->bind_param("ssssdi", $name, $description, $room_type, $props, $price, $room_id);
         }
-
-        if ($stmt->execute()) {
-            $success = "Room updated successfully.";
-        } else {
-            $error = "Failed to update room.";
-        }
+        $stmt->execute();
         $stmt->close();
+        $success = "Room updated successfully.";
     }
 }
 
-// Fetch rooms
 $rooms = [];
 $result = $conns->query("SELECT * FROM rage_rooms ORDER BY id DESC");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $rooms[] = $row;
-    }
+while ($row = $result->fetch_assoc()) {
+    $rooms[] = $row;
 }
 ?>
 <!DOCTYPE html>
@@ -149,7 +126,8 @@ if ($result) {
         .card form { margin-top: auto; }
         .card button.btn { width: 100%; padding: 10px; margin-top: 10px; background-color: #c62828; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
         .btn-edit { background-color: #1976d2; margin-top: 5px; }
-        .dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; }
+        .btn-rent { background-color: #43a047; margin-top: 5px; }
+        .dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .dialog { background: white; padding: 30px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
         .dialog h2 { margin-top: 0; }
         .dialog form input, .dialog form textarea, .dialog form select, .dialog form button { width: 100%; margin-bottom: 12px; padding: 10px; }
@@ -174,20 +152,20 @@ if ($result) {
 
     <div class="room-grid">
         <?php foreach ($rooms as $room): ?>
-           <div class="card">
-    <img src="<?= htmlspecialchars($room['image_path']) ?>" alt="Room Image">
-    <h3><?= htmlspecialchars($room['name']) ?></h3>
-    <p><?= htmlspecialchars($room['description']) ?></p>
-    <p><strong>Type:</strong> <?= htmlspecialchars($room['room_type']) ?></p>
-    <p><strong>Props:</strong> <?= htmlspecialchars($room['props']) ?></p>
-    <p><strong>Price per Hour:</strong> $<?= number_format($room['price'], 2) ?></p>
-    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this room?');">
-        <input type="hidden" name="delete_room_id" value="<?= $room['id'] ?>">
-        <button type="submit" class="btn">🗑 Delete</button>
-    </form>
-    <button type="button" class="btn btn-edit" onclick='openEditDialog(<?= json_encode($room) ?>)'>✏ Edit</button>
-</div>
-
+        <div class="card">
+            <img src="<?= htmlspecialchars($room['image_path']) ?>" alt="Room Image">
+            <h3><?= htmlspecialchars($room['name']) ?></h3>
+            <p><?= htmlspecialchars($room['description']) ?></p>
+            <p><strong>Type:</strong> <?= htmlspecialchars($room['room_type']) ?></p>
+            <p><strong>Props:</strong> <?= htmlspecialchars($room['props']) ?></p>
+            <p><strong>Price:</strong> $<?= number_format($room['price'], 2) ?></p>
+            <form method="POST" onsubmit="return confirm('Are you sure you want to delete this room?');">
+                <input type="hidden" name="delete_room_id" value="<?= $room['id'] ?>">
+                <button class="btn">🗑 Delete</button>
+            </form>
+            <button class="btn btn-edit" onclick='openEditDialog(<?= json_encode($room) ?>)'>✏ Edit</button>
+            <button class="btn btn-rent" onclick='openRentDialog(<?= json_encode($room) ?>)'>💳 Rent Now</button>
+        </div>
         <?php endforeach; ?>
     </div>
 </div>
@@ -200,7 +178,6 @@ if ($result) {
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Room Name" required>
             <textarea name="description" placeholder="Description" rows="3"></textarea>
-  
             <select name="room_type" required>
                 <option value="">Select Room Type</option>
                 <option value="Solo">Solo</option>
@@ -230,23 +207,46 @@ if ($result) {
                 <option value="Couple">Couple</option>
                 <option value="Group">Group</option>
             </select>
-            <input type="text" name="props" id="edit_props" placeholder="Props (e.g., Bats, Plates)">
-            <input type="number" name="price" id="edit_price" placeholder="Price ($)" step="0.01" required>
+            <input type="text" name="props" id="edit_props" placeholder="Props">
+            <input type="number" name="price" id="edit_price" placeholder="Price" step="0.01" required>
             <input type="file" name="image" accept="image/*">
             <button type="submit">Update Room</button>
         </form>
     </div>
 </div>
 
+<!-- Updated Rent Room Dialog -->
+<div class="dialog-overlay" id="rentDialog">
+    <div class="dialog">
+        <div class="close-btn" onclick="closeRentDialog()">✖</div>
+        <h2>Rent Rage Room</h2>
+        <form method="POST" action="rent_process.php">
+            <input type="hidden" name="room_id" id="rent_room_id">
+            <p><strong>Room:</strong> <span id="rent_room_name"></span></p>
+            
+            <input type="text" name="customer_name" placeholder="Full Name" required>
+            <input type="tel" name="customer_phone" placeholder="Phone Number" required>
+            <input type="text" name="customer_address" placeholder="Address" required>
+            
+            <label for="rental_date">Date to Avail:</label>
+            <input type="date" name="rental_date" required>
+
+            <label for="rental_hours">How many hours?</label>
+            <input type="number" name="rental_hours" min="1" placeholder="Hours" required>
+            
+            <button type="submit">Confirm Rent</button>
+        </form>
+    </div>
+</div>
+
+
 <script>
     function openDialog() {
         document.getElementById("dialog").style.display = "flex";
     }
-
     function closeDialog() {
         document.getElementById("dialog").style.display = "none";
     }
-
     function openEditDialog(room) {
         document.getElementById("edit_room_id").value = room.id;
         document.getElementById("edit_name").value = room.name;
@@ -256,9 +256,16 @@ if ($result) {
         document.getElementById("edit_price").value = room.price;
         document.getElementById("editDialog").style.display = "flex";
     }
-
     function closeEditDialog() {
         document.getElementById("editDialog").style.display = "none";
+    }
+    function openRentDialog(room) {
+        document.getElementById("rent_room_id").value = room.id;
+        document.getElementById("rent_room_name").innerText = room.name;
+        document.getElementById("rentDialog").style.display = "flex";
+    }
+    function closeRentDialog() {
+        document.getElementById("rentDialog").style.display = "none";
     }
 </script>
 
